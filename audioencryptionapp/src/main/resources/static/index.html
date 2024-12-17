@@ -1,0 +1,196 @@
+<!-- src/main/resources/static/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NOBODYKNOWS BY WETTO</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #555;
+        }
+        input[type="file"], input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 12px 20px;
+            margin-top: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Audio Steganography App</h1>
+    <div class="container">
+
+        <!-- Загрузка файла -->
+        <div class="section" id="upload-section">
+            <h2>Загрузка Аудио Файла (WAV)</h2>
+            <input type="file" id="uploadFile" accept=".wav">
+            <button onclick="uploadFile()">Загрузить</button>
+        </div>
+
+        <!-- Встраивание сообщения -->
+        <div class="section" id="embed-section">
+            <h2>Встраивание Сообщения в Аудио Файл</h2>
+            <input type="text" id="embedFileId" placeholder="Введите ID файла для встраивания сообщения">
+            <textarea id="embedMessage" rows="4" placeholder="Введите сообщение для встраивания"></textarea>
+            <button onclick="embedMessage()">Встроить Сообщение</button>
+        </div>
+
+        <!-- Извлечение сообщения -->
+        <div class="section" id="extract-section">
+            <h2>Извлечение Сообщения из Аудио Файла</h2>
+            <input type="text" id="extractFileId" placeholder="Введите ID файла для извлечения сообщения">
+            <button onclick="extractMessage()">Извлечь Сообщение</button>
+        </div>
+
+        <!-- Сообщения об успехе или ошибках -->
+        <div id="message"></div>
+    </div>
+
+    <script>
+        function displayMessage(text, isSuccess) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerText = text;
+            if (isSuccess) {
+                messageDiv.className = 'success';
+            } else {
+                messageDiv.className = 'error';
+            }
+        }
+
+        function uploadFile() {
+            const fileInput = document.getElementById('uploadFile');
+            const file = fileInput.files[0];
+            if (!file) {
+                displayMessage('Пожалуйста, выберите WAV файл для загрузки.', false);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                displayMessage(data, true);
+                fileInput.value = ''; // Очистка поля
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                displayMessage('Ошибка при загрузке файла.', false);
+            });
+        }
+
+        function embedMessage() {
+            const fileId = document.getElementById('embedFileId').value.trim();
+            const message = document.getElementById('embedMessage').value.trim();
+            if (!fileId || !message) {
+                displayMessage('Пожалуйста, введите ID файла и сообщение для встраивания.', false);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('fileId', fileId);
+            formData.append('message', message);
+
+            fetch('/api/embed', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                displayMessage(data, true);
+                document.getElementById('embedFileId').value = ''; // Очистка поля
+                document.getElementById('embedMessage').value = ''; // Очистка поля
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                displayMessage('Ошибка при встраивании сообщения.', false);
+            });
+        }
+
+        function extractMessage() {
+            const fileId = document.getElementById('extractFileId').value.trim();
+            if (!fileId) {
+                displayMessage('Пожалуйста, введите ID файла для извлечения сообщения.', false);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('fileId', fileId);
+
+            fetch('/api/extract', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                displayMessage(data, true);
+                document.getElementById('extractFileId').value = ''; // Очистка поля
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                displayMessage('Ошибка при извлечении сообщения.', false);
+            });
+        }
+    </script>
+
+</body>
+</html>

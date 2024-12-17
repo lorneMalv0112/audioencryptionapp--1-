@@ -1,0 +1,15 @@
+[Unit]
+Description=AudioEncryptionApp Service
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/root/audioencryptionapp/
+ExecStart=/usr/bin/java -jar /root/audioencryptionapp/target/audioencryptionapp-0.0.1.jar
+SuccessExitStatus=143
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+
+[Install]
+WantedBy=multi-user.target
